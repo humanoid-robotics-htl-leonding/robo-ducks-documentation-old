@@ -1,0 +1,96 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{ducktex}
+% Use latexmk for building, else it might throw strange errors
+\author{    
+    Jan Neuburger \\
+    jan.neuburger.jn@gmail.com
+    \and
+    Erik Mayrhofer \\
+    erik.mayrhofer@liwest.at
+    \and
+    Florian Schwarcz \\
+    florian.schwarcz@gmx.at
+    \and
+    Maximilian Wahl \\
+    mexx.wale@gmail.com
+    }
+\title{Duckburg\\[0.2em]Concept of a Framework}
+\begin{document}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+\section{The components}\label{sec:theComponents}
+\subsection{The Brain}\label{subsec:theBrain}
+The Brain is the central part of the Framework, even though being the simplest component upon the three.
+It works as the junction for the communication traffic of the Engines.
+The tasks of the Brain are only to provide Engines with the possibility to subscribe to Slots and send Intents to them.
+Also it is the keeper of the dictionary that contains Slots and Filters.
+
+The main focus of the brain is to minimize its logical effort and therefore maximize communication possibilities
+for Engines.
+\subsection{The Engines}\label{subsec:theEngines}
+Engines are the components of Duckburg that do the thinking.
+Basically an Engine can do two things:
+\begin{itemize}
+\item Send intents
+\item Subscribe to Slots    
+\end{itemize}
+The key point of Engines is that they don't really "do" anything but that they "think" about and react to things.
+\subsection{The Agents}\label{subsec:theAgents}
+Agents are components of Duckburg that really make things go\dots\ literally.
+They are invoked by their Engines and then perform the task they are made to do.
+Examples for Agents could be: An Agent
+\begin{itemize}
+\item \dots\ that walks
+\item \dots\ that calculates the position of an object
+\item \dots\ that writes a log entry to a file
+\item \dots\
+\end{itemize}
+An Agent shouldn't be a huge logical block but rather focus on executing a single task (Microservices). 
+\section{Intent-Flow}\label{sec:intent-flow}
+\subsection{Start}\label{subsec:start}
+The brain is the first component that will start after the system boot.
+It will then proceed to load a config file in which the filenames of all Engines are located.
+Afterwards the Brain will load all Engines that are mentioned in the config file and initialize them.
+\subsection{The Intent}\label{subsec:theIntent}
+An Engine is able to send an Intent.
+An Intent contains a command that should be executed.
+After an Intent is sent to the Brain it runs through a number of Intent Filters that sort out illegal Intents.
+Then the Brain forwards the Intent to the correct slot.
+If the Slot that the Intent is sent to doesn't exist,
+it is created.
+An Intent can also be delayed, which means that after reaching the brain it will
+not continue on to the dispatcher until the specified time has passed.
+\subsection{Subscriptions}\label{subsec:subscriptions}
+When an Intent reaches the Slot it is sent to all Engines that have subscribed to this Slot.
+An Engine subscribes to a Slot by specifying a method that will be called when an Intent is sent to this Slot.
+As soon as an Engine subscribes to a Slot this Slot is created if it didn't exist before.
+\subsection{An example}\label{subsec:anExample}
+The Perception Engine spotted the Ball in its last action.
+It now sends an Intent "Move-To-Ball"
+(in reality the Intent would consist of a certain formatted header but we keep it simple for the expample).
+The Intent gets to the filters.
+If the Filter for "We are penalized" would be active it wouldn't let this intent pass
+because it is of type "Move" and we aren't allowed to move when penalized.
+If the Intent passes the Filters it gets to the Brain, where the brain sends the Intent to the "Move-To-Ball" Slot.
+\\
+At this instant the Motion Engine is already subscribed to the "Move-To-Ball" Slot with its method "move".
+From now on the "move" Method will be invoked when any Intent is sent to the "Move-To-Ball" Slot.
+\\
+Now the Intent from before gets to the Motion Engine which starts its "move" method.
+In the Engines "move" it tells its Agents the right tasks to complete to move.
+The Agents do what the Engine tells them to and the Robot moves towards the ball.
+\\
+It is possible to send new Intents when a method is invoked due to a subscription.
+
+\section{Internal Structure}
+\subsection{Intents}
+An Intent has 3 Fields:
+\begin{itemize}
+    \item An id, that tells what slot the Intent should go to
+    \item A field for the data that the Intent is carrying
+    \item delay, that specifies what time after being isseued the Intent should
+          be dispatched
+\end{itemize} 
+\end{document}

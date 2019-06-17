@@ -1,0 +1,93 @@
+% https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings
+\documentclass{article}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{marginnote}
+\usepackage{xparse}
+\usepackage{enumitem}
+
+\newlist{notes}{enumerate}{1}
+\setlist[notes]{label=Note: ,leftmargin=*}
+
+\newmint[bash]{bash}{breaklines}
+\newcommand{\bbash}[1]{\bash|#1|}
+
+\begin{document}
+In this approach we try to compile the HULKs toolchain on a docker.
+This is our \texttt{docker-compose.yml}
+
+\begin{minted}[linenos]{yaml}
+version: "3"
+
+volumes:
+  ubuntu-vol:
+
+services:
+  ubuntu:
+    image: ubuntu:bionic
+    volumes:
+      - ubuntu-vol:/home
+    entrypoint: /bin/bash
+    stdin_open: true
+    tty: true
+\end{minted}
+\paragraph{}
+We log into our ubuntu with
+\texttt{docker exec -it [containername] /bin/bash}.
+
+\bash'apt-get update'
+\bash'apt-get install git wget -y'
+
+From the HULKs-Team-Research-Report: You need these Packages to 
+build the toolchain.
+\begin{quote}
+build-essentials (gcc, make, ...), git, automake, autoconf, gperf, bison, flex, texinfo,
+libtool, libtool-bin, gawk, libcursesX-dev, unzip, CMake, libexpat-dev, python2.7-dev,
+nasm, help2man, ninja
+\end{quote}
+
+\bash'apt install build-essential -y'
+\bash'apt install automake autoconf -y'
+\bash'apt install gperf -y'
+\bash'apt install bison flex texinfo -y'
+\bash'apt install libtool libtool-bin gawk -y'
+
+\paragraph{Note:}
+We are not entirely sure if \texttt{libncurses5-dev} is the correct package
+to satisfy \texttt{libcursesX-dev} but we think the \texttt{X} stands for
+a random Versionnumber and the n was forgotten.
+\bash'apt install libncurses5-dev -y'
+
+\bash'apt install unzip cmake -y'
+\paragraph{Note:} We are pretty sure, that \texttt{libexpat1-dev} is the correct
+package for \texttt{libexpat-dev}.
+\bash'apt install libexpat1-dev -y'
+
+\bash'apt install python2.7-dev nasm help2man -y'
+
+\paragraph{Note:} We think \texttt{ninja-build} is the correct package for \texttt{ninja}.
+\bash'apt install ninja-build -y'
+
+Our working directory will be \texttt{/home/docker} as \texttt{docker}
+\begin{minted}{bash}
+useradd docker
+usermod -s /bin/bash docker
+mkdir /home/docker
+chown docker:docker /home/docker
+cd /home/docker
+\end{minted}
+
+\bash'git clone https://github.com/Obyoxar/HULKsCodeRelease.git'
+
+\bash'cd /home/docker/HULKsCodeRelease/tools/ctc-hulks'
+
+\bash'./0-clean'
+
+\paragraph{Note:} Before we can init the setup script,
+we need to create a folder \texttt{ctc-hulks-config}.
+\bash'mkdir ctc-hulks-config'
+\bash'touch ctc-hulks-config/.config'
+\bash'./1-setup'
+\bash'./2-setup'
+
+\end{document}

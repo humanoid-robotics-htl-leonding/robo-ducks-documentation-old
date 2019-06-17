@@ -1,0 +1,23 @@
+\usepackage{listing}
+\usepackage{minted}
+\usepackage[font={normalsize,tt},labelfont={normalfont,bf}]{caption}
+
+\newminted{cpp}{linenos}
+\newminted{cmake}{linenos}
+\newminted{xml}{linenos}
+
+
+%USAGE: \begin{duckc++}{CAPTIONNAME}{LABELNAME} ... \end{duckc++}
+\newenvironment{duckc++}[2]
+{\VerbatimEnvironment\begin{figure}[H]\caption{#1}\label{#2}\begin{cppcode}}
+{\end{cppcode}\end{figure}}
+
+%USAGE: \begin{duckcmake}{CAPTIONNAME}{LABELNAME} ... \end{duckc++}
+\newenvironment{duckcmake}[2]
+{\VerbatimEnvironment\begin{figure}[H]\caption{#1}\label{#2}\begin{cmakecode}}
+{\end{cmakecode}\end{figure}}
+
+%USAGE: \begin{duckxml}{CAPTIONNAME}{LABELNAME} ... \end{duckc++}
+\newenvironment{duckxml}[2]
+{\VerbatimEnvironment\begin{figure}[H]\caption{#1}\label{#2}\begin{xmlcode}}
+{\end{xmlcode}\end{figure}}
