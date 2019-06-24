@@ -1,0 +1,53 @@
+# RoboDucks
+
+## Story
+
+### B-Human vs HULKs
+
+After the RoboDucks project got passed on a decision needed to be made on how to
+make real progress, that would actually get the NAOs to be able to play soccer.
+So as many other teams do this as well, we decided to use an existing framework
+and spice it up with our own code. We had to decide between two frameworks - 
+HULKs and B-Human.
+
+First we tried B-Human but they use [MaRe](https://github.com/craflin/mare)
+which we didn't want to use so we settled with HULKs pretty quickly.
+
+But the HULKs' code didn't seem to be working, we were not able to compile the
+toolchain because of a deprecated github release. And even if we were able to
+fix this issue we would immediately have encountered another problem concerning
+VSyscalls which had trouble with the current Linux-Kernel.
+
+So we thought that it would be quicker and easier if we just made our own
+framework, because we wouldn't have to learn everything about the existing ones
+and would "just" need to make our own from scratch. So in September 2018 we
+created a concept.
+
+### Duckburg
+
+#### Utopia
+
+And this concept became known as Duckburg. The idea was based on the concept of
+MQTT so we would have a central Brain that would receive, redirect and process
+Messages from different Engines, that were each made for one purpose. So as a
+very oversimplyfied example we
+would have a Vision-Engine that would look for the ball and then send a
+"I see the ball" message to the Brain and then the Motion-Engine could subscribe
+to "I see the ball" messages and receive them every time the Brain gets one and
+then Motion-Engine could start moving the robot towards the ball.
+
+We also developed a concept for configuration files to determine what Engines
+should be loaded when starting the program. This feature was called DyLLo or
+"Dynamic Library Loading" and had some other neat features.
+
+On top of this we also wanted to let Windows users work on Windows and not
+forcing them to use Linux so we wanted to compile our C++ on Docker and then
+upload it either to NAO itself or a VM running the OpenNaoOS.
+
+#### Apocalypse
+
+So far so good but we soon learned that we wouldn't get anything done if we
+continued working on Windows. It just caused too many problems especially with
+the Docker compiling, so we solved this problem by just not supporting Windows
+and requiring our developers to use Widows.
+
