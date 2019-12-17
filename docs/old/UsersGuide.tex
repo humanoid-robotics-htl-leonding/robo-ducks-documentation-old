@@ -1,0 +1,273 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{listing}
+\usepackage{courier}
+\usepackage{ducktex}
+\usepackage{float}
+\floatstyle{boxed} 
+\restylefloat{figure}
+
+\author{    
+    Jan Neuburger \\
+    jan.neuburger.jn@gmail.com
+    \and
+    Erik Mayrhofer \\
+    erik.mayrhofer@liwest.at
+    \and
+    Florian Schwarcz \\
+    florian.schwarcz@gmx.at
+    \and
+    Maximilian Wahl \\
+    mexx.wale@gmail.com
+    }
+\title{Duckburg\\[0.2em]Users Guide}
+\begin{document}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+\section{Creating an Engine inside the Project}
+Engines are either shipped in individual .so files or as a group in one .so file.
+In general it is better to ship one Engine in one .so file, because this allows
+us to have more control over the final code when starting the robot.
+\subsection{Background knowledge}
+Duckburg itself does not contain any strategic, tactical or any other game
+relevant logic whatsoever. 
+This is because we want to be able to quickly switch between scenarios like
+playing in the robocup and then presenting the Robot at a fair. 
+In our current setup we only have to change the settings in one single 
+configuration file, which specifies which components and engines will be used
+at startup.
+This implies multiple things:
+\begin{itemize}
+    \item One engine does not know anything which engines are loaded.
+    \item All engines have to communicate over a central message bus.
+    \item One engine cannot have direct calls to other engines nor can include them.
+\end{itemize} 
+\subsection{How to: "Create an engine"}
+Let`s assume we want to create a Communication-Engine.
+It`s job is to listen for a TCP-Connection and transmit or receive information
+Let`s use the following requirements:
+\begin{itemize}
+    \item Receive Commands ''Move forward'', ''Stop'', ''Sit'', ''Standup''
+    \item Listen for Requests ''Current Position'', ''Estimated Ball Position'' and answer them
+    \item Send Status information if the robot tips, starts to move or stops moving
+\end{itemize}
+\subsubsection{Creating the class-file}
+\paragraph{Create files}
+First we create two files \texttt{ExampleEngine.cpp} and
+\texttt{ExampleEngine.h}.
+\paragraph{Register files in CMake}
+Our compiler somehow has to know which files belong to which engine.
+Therefore we open our \texttt{CMakeLists.txt}.
+CLion automatically adds our files to a target of it's choice,
+most of the time this will be \texttt{Duckburg}.
+We search for our two files and delete them.
+\begin{duckcmake}{CMakeLists.txt}{TODO}
+add_library(Duckburg SHARED
+    core/Brain.cpp
+    core/Brain.h
+    ...
+    core/Intent.h
+    core/StandardIntents.h
+    hightools/TimeUtil.h
+    engines/ExampleEngine.cpp #Remove
+    engines/ExampleEngine.h #Remove
+    )
+\end{duckcmake}
+Engines \textbf{must} always be in a seperate target.
+Multiple Engines may be combined in one target, but this is
+discouraged and must have a good reason.
+Lets create a new target.
+\begin{duckcmake}{CMakeLists.txt}{TODO}
+add_library(ExampleEngine SHARED
+    engines/ExampleEngine.cpp 
+    engines/ExampleEngine.h)
+target_link_libraries(ExampleEngine Duckburg)
+\end{duckcmake}
+\subsubsection{Implementing the Engines}
+Now we have registered our class and it can be compiled.
+It's time that we take a close look at the class itself.
+Right now our two files are empty, or contain just some boilerplate code.
+Lets write the following things into them.
+
+\begin{duckc++}{ExampleEngine.h}{code:tutexengine}    
+#ifndef DUCKBURG_EXAMPLEENGINE_H
+#define DUCKBURG_EXAMPLEENGINE_H
+
+#include "../core/EngineBase.h"
+
+class ExampleEngine : public EngineBase {
+public:
+    /***
+    Returns the runtime-name of the engine. 
+    This can be whatever you want,
+    but should be the same as the name of the class.
+    */
+    const char* getName() override;
+
+    /***
+    This is the first lifecycle-hook of all Engines. 
+    In onLoad() you should subscribe to all needed 
+    Intents and not do anything besides that.
+    Setup-Code should be in the Constructor or in a 
+    Dispatcher of the "brain-run" method.
+    */
+    void onLoad() override;
+
+    /***
+    This method should always return 
+    the macro "ENGINE_BASE_VERSION".
+    This is used to detect old Engines which need
+    to be recompiled to run properly.
+    */
+    unsigned int getEngineBaseVersion() override;
+
+
+    /***
+    This is one of our Intenthandlers.
+    */
+    void doThing(void* data);
+};
+#endif //DUCKBURG_EXAMPLEENGINE_H
+\end{duckc++}    
+\begin{duckc++}{ExampleEngine.cpp}{code:tutexengine}
+#include <boost/signals2/signal.hpp>
+#include <iostream>
+#include "ExampleEngine.h"
+#include "../hightools/Dyllo.h"
+#include "../core/Brain.h"
+#include "../core/Logger.h"
+
+//All Log-calls after this Tag will be 
+//tagged accordingly.
+//You can have more than one Log-Tag per File,
+//but the name should be descriptive.
+#define LOG_TAG LOGGER(ExampleEngine)
+
+void ExampleEngine::onLoad() {
+
+    //We want to register our doThing()
+    //method to the tick-Intent.
+    Brain::getInstance()->addDispatcher(
+        INTENTID_ON_BRAIN_TICK, 
+        BINDTHIS(ExampleEngine::doThing)
+    );
+}
+
+//The UNUSED macro is used to supress compiler
+//warnings regarding unused parameters
+void ExampleEngine::doThing(UNUSED void* data) {
+    //LINFO writes an info-message to stdout
+    LINFO("Thing is done");
+}
+
+const char *ExampleEngine::getName() {
+    return "ExampleEngine";
+}
+
+unsigned int ExampleEngine::getEngineBaseVersion() {
+    return ENGINE_BASE_VERSION;
+}
+
+//!!!!ATTENTION!!!!
+//This line is crucial. If this is missing,
+//our Engine cannot be loaded at runtime.
+DL_CLASS_PUBLISH(ExampleEngine)
+\end{duckc++}
+\subsubsection{Start Duckburg and load our Engine} 
+We now need to compile our Engine. If we use the shipped scripts, everything is
+compiled, including our Engine. We can verify that our Engine is present by 
+looking in the \texttt{build} directory and checking if \texttt{libExampleEngine.so}
+exists.
+We will now tell Duckburg to load our Engine on startup, via the \texttt{conf.xml}.
+\begin{duckxml}{conf.xml}{TODO}
+<ENGINES>
+    <ENGINE>
+        <FILENAME>libExampleEngine.so</FILENAME>
+        <NAME>ExampleEngine</NAME>
+    </ENGINE>
+</ENGINES>
+\end{duckxml}
+Now everything is setup. We can now compile our engine and start
+duckburg using \texttt{upload.sh buildrun}
+
+\subsection{How to: "Subscribe to Intents"}
+
+\begin{duckc++}{Advanced Intents}{code:tutexengine}
+    Brain::getInstance()->addDispatcher(..., 
+        BINDTHIS(...), SlotOrder::EXEC);
+    Brain::getInstance()->addDispatcher(...,
+        BINDTHIS(...), SlotOrder::PRE);
+    Brain::getInstance()->addDispatcher(..., 
+        BINDTHIS(...), SlotOrder::POST);
+\end{duckc++}
+\paragraph{Intent-Ids}
+The first Argument to addDispatcher is the desired INTENT-ID.
+All INTENT-IDs are strings, which are defined using macros in
+a Header-File of an Engine.
+If you want to issue a new Intent, please define the INTENT-ID 
+in the Header-File of your engine.
+\subsection{How to: "Master the Logging-Framework"}
+The Logger is defined in \texttt{core/Logger.h}. To use the logger
+this file hast to be included and a log-tag has to be defined.
+\begin{duckc++}{Use the Logger}{code:tutexengine}
+#include "../core/Logger.h"
+#define LOG_TAG LOGGER(LoggingEngine)
+\end{duckc++}
+\paragraph{The log-tag} indicates who will now log messages.
+You can use more than one log-tag in one file and then every log-call
+will use the last defined log-tag.
+\paragraph{log-levels} indicate how severe and important the following
+current message is. We decided to use the same logging-levels as journalctl so that
+we can maybe once stream our logs to the official linux-logging 
+framework. 
+\begin{itemize}
+    \item LEVEL\_EMERGENCY 0
+    \item LEVEL\_ALERT 1
+    \item LEVEL\_CRIT 2
+    \item LEVEL\_ERR 3
+    \item LEVEL\_WARN 4
+    \item LEVEL\_NOTICE 5
+    \item LEVEL\_INFO 6
+    \item LEVEL\_DEBUG 7
+\end{itemize}
+\paragraph{log-macros} allow you to create logs. 
+There are several:
+\begin{duckc++}{Log-Macros}{code:logmacros}
+    LDEBUG("abc");
+    LINFO("abc");
+    LNOTICE("abc");
+    LWARN("abc");
+    LERR("abc");
+    LALERT("abc");
+    LCRIT("abc");
+    LEMERGENCY("abc");
+    int a = 3;
+    LFDEBUG("abc: " << a << " test");
+    LFINFO("abc" << a << " test");
+    LFNOTICE("abc" << a << " test");
+    LFWARN("abc" << a << " test");
+    LFERR("abc" << a << " test");
+    LFALERT("abc" << a << " test");
+    LFCRIT("abc" << a << " test");
+    LFEMERGENCY("abc" << a << " test");
+\end{duckc++}
+The \texttt{LF[LEVEL](msg)} calls are slower than the normal \texttt{L[LEVEL](msg)} calls
+but allow you to output variables and similar things.
+\paragraph{The DEBUG\_MODE macro} will be defined if the 
+log-level is DEBUG. This can be used to in \#ifdefs around more
+complicated debug-code
+\subsubsection{Configure the Logging-Framework}
+You can specify several variables at compile time:
+\paragraph{LOG\_LEVEL}
+If specified, all Logs that are more verbose than LOG\_LEVEL will not be
+compiled into our library. We won't want DEBUG-Outputs in our library
+when we compile it for use at a fair or similar important events. 
+These calls are completely dropped and will not slow down our code.
+If LOG\_LEVEL is not specified \textbf{it defaults to INFO. Therefore 
+no debug calls will be outputted to the console.}
+\paragraph{LOG\_LEVEL\_CERR} 
+This indicates which logs will be outputted to cerr instead of cinfo.
+This defaults to \texttt{LEVEL\_WARN}.
+
+\end{document}
