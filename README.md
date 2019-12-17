@@ -1,6 +1,6 @@
-# Robo Ducks Documentation
+# RoboDucks Documentation
 
-This is the Repo for all information on the Roboducks NAO Team.
-For details on teams and how to set everything up to play visit the
-[Wiki](https://github.com/humanoid-robotics-htl-leonding/robo-ducks-documentation/wiki)
-in this Repo
+This is mainly used as an archive for reports of all sorts.
+
+For closer information and current and dynamic data, please
+refer to our [wiki](https://github.com/humanoid-robotics-htl-leonding/robo-ducks-documentation/wiki)
