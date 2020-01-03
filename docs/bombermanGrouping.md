@@ -22,8 +22,10 @@ Note: A point compared to itself does not have to match the condition.
 
 Next, the matrix is iterated through its diagonal.
 
-At first, a new group is created which contains the first element. Then a bomberman-like explosion is initiated in the first cell that expands in the positive and negative x and y direction.
-Every time the explosion encounters a bomb, another explosion is initiated from this cell. This goes on until every explosion is done. All items that were part of a bomb belong to the same group.
+At first, a new group is created which contains the first element.
+Then a bomberman-like explosion is initiated in the first cell that expands in the positive and negative x and y direction.
+Every time the explosion encounters a bomb, another explosion is initiated from this cell. This goes on until every explosion is done.
+All items that were part of a bomb belong to the same group.
 
 ||A|B|C|D|
 |-|-|-|-|-|
@@ -126,12 +128,10 @@ Current element: A, Current group: A
 |-|-|-|
 |-| | |
 
-Current element: A, Current group: A
 |B|C|D|
 |-|-|-|
 |-|-| |
 
-Current element: A, Current group: A
 |B|C|D|
 |-|-|-|
 |-|-|B|
@@ -143,12 +143,13 @@ Current element: D, Current group: A, D
 |-|-|
 |-| |
 
-Current element: D, Current group: A, D
 |B|C|
 |-|-|
 |-|-|
 
 Recursive D explosion done.
+
+Current element: A, Current group: A, D
 
 A explosion done.
 
@@ -164,6 +165,8 @@ Add C to group, explode recursively.
 Current element: C, Current group: B, C
 
 Recursive C explosion done.
+
+Current element: B, Current group: B, C
 
 B explosion done.
 
