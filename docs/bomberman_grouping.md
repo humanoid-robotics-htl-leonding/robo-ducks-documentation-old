@@ -124,6 +124,7 @@ After optimizing, everything stays one-dimensional, but the general idea is stil
 |-|-|-|-|
 
 Current element: A, Current group: A
+
 |B|C|D|
 |-|-|-|
 |-| | |
@@ -139,6 +140,7 @@ Current element: A, Current group: A
 Add D to group, explode recursively.
 
 Current element: D, Current group: A, D
+
 |B|C|
 |-|-|
 |-| |
@@ -156,6 +158,7 @@ A explosion done.
 Save group: A, D
 
 Current element: B, Current group: B
+
 |C|
 |-|
 |B|
