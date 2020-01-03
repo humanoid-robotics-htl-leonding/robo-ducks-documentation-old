@@ -177,5 +177,3 @@ Save group: B, C
 
 ## Results
 After optimizing, there were only 6 comparisons instead of 16 which causes a massive performance increase as the comparison is the most complicated operation.
-
-When grouping 100 items, only about 30 comparisons are needed on average.
