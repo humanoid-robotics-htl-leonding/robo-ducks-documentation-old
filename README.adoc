@@ -2,4 +2,4 @@
 
 This is mainly used as an archive for reports of all sorts.
 
-For closer information and current and dynamic data, please refer to our https://github.com/humanoid-robotics-htl-leonding/robo-ducks-documentation/wiki[wiki]
+For closer information and current and dynamic data, please refer to our https://github.com/humanoid-robotics-htl-leonding/robo-ducks-documentation-old/wiki[wiki]
